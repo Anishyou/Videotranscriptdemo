@@ -1,0 +1,22 @@
+<div class="video-wrapper">
+  <!-- Video Player -->
+  <video #videoPlayer id="videoPlayer" controls>
+    <source [src]="videoUrl" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+  <!-- Subtitle Overlay -->
+  <div class="subtitle-container">
+    <p>{{ currentSubtitle }}</p>
+  </div>
+
+  <!-- Subtitle Search (Top Right) -->
+  <div class="subtitle-search-container">
+    <input type="text" [(ngModel)]="searchTerm" (input)="searchSubtitles()" placeholder="Search subtitles...">
+    <ul>
+      <li *ngFor="let subtitle of filteredSubtitles" (click)="seekToTime(subtitle.startTime)">
+        {{ subtitle.text }}
+      </li>
+    </ul>
+  </div>
+</div>

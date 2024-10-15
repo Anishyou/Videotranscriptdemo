@@ -1,13 +1,16 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { VideoPlayerComponent } from './video-player/video-player.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  imports: [VideoPlayerComponent],  // Import the standalone VideoPlayerComponent
+  template: `
+    <h1>Video Player</h1>
+    <app-video-player></app-video-player>
+  `,
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'video-transcript-app';
+  title = 'Standalone Video App';
 }
