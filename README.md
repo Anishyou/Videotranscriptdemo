@@ -42,6 +42,6 @@ Right-click on the page and select Inspect.
 
 Go to the Network tab.
 
-You should see a network request with playlist.m3u8?jwt=... in the name(might have to refresh). Click on it and copy the full URL (including the jwt token).
+You should see a network request with playlist.m3u8?jwt=... under the secion "name" (might have to refresh the page). Click on it and copy the full URL (including the jwt token).
 
 Paste the full URL (with the jwt token) into the videoUrl property in video-player.component.ts:
