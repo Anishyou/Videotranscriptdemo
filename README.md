@@ -1,27 +1,47 @@
-# VideoTranscriptApp
+# Videotranscriptdemo
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.8.
+# Angular Video Player with Subtitles
 
-## Development server
+This is an Angular video player application that uses the TUM Live video API to stream videos, display subtitles, and allow users to search through the subtitles 
+and jump to specific points in the video. It uses **Hls.js** for adaptive video streaming and dynamically fetches and displays subtitles in real-time.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+## Features
 
-## Code scaffolding
+- Stream video using HLS (`.m3u8` format).
+- Display WebVTT subtitles.
+- Search through subtitles.
+- Click on subtitles to jump to specific points in the video.
+- Sync subtitles with the video player's current time.
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Prerequisites
 
-## Build
+Before running the project, ensure you have the following installed:
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+- [Node.js](https://nodejs.org/)
+- [Angular CLI](https://angular.io/guide/setup-local) (`npm install -g @angular/cli`)
 
-## Running unit tests
+## How to Use
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+1. Clone the repository:
+2. Find the Video URL with your personal jwt token (More on that below)
+3. Run  npm install on terminal
+4. npm serve ( to start the application)
+5. Navigate to the respective localhost (generally http://localhost:4200)
+   
 
-## Running end-to-end tests
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
 
-## Further help
+Finding the Video URL
+To obtain the video URL, follow these steps:
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Go to the TUM Live stream link.
+
+Play the video.
+
+Right-click on the page and select Inspect.
+
+Go to the Network tab.
+
+You should see a network request with playlist.m3u8?jwt=... in the name(might have to refresh). Click on it and copy the full URL (including the jwt token).
+
+Paste the full URL (with the jwt token) into the videoUrl property in video-player.component.ts:
