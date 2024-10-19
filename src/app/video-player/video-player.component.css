@@ -1,73 +1,66 @@
-/* Video container to make the video fullscreen and centered */
+/* Video container to make the video and subtitle sidebar */
 .video-wrapper {
   position: relative;
   width: 100vw;
-  height: 100vh; /* Full screen height */
+  height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-start;
+  align-items: flex-start;
   background-color: black;
+  overflow: hidden;
 }
 
-/* Make video fill the available space */
+/* Adjust video to be 70% width and fit within 100% of the viewport height */
 video {
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* Ensure the video is not cropped */
+  width: 70%;
+  max-height: 100vh;
+  object-fit: contain;
 }
 
-/* Subtitle styling */
-.subtitle-container {
-  position: absolute;
-  bottom: 10%;
-  width: 100%;
-  text-align: center;
-  color: white;
-  font-size: 1.5rem;
-  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
-  background: rgba(0, 0, 0, 0.5);
-  padding: 10px;
-}
-
-/* Top-right search container */
-.subtitle-search-container {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 300px;
+/* Subtitle list container on the right side (30% of width) */
+.subtitle-list-container {
+  position: relative;
+  width: 30%;
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.8);
   padding: 10px;
-  border-radius: 8px;
-  color: white;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
-/* Input field for searching */
-.subtitle-search-container input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  border: none;
-  border-radius: 4px;
-  background-color: #222;
-  color: white;
-}
-
-/* Subtitle list styling */
-.subtitle-search-container ul {
-  list-style-type: none;
+/* Subtitle list styling - remove bullet points */
+.subtitle-list-container ul {
+  list-style-type: none; /* Remove bullet points */
   padding: 0;
   margin: 0;
-  max-height: 200px;
+  width: 100%;
+  max-height: 100%;
   overflow-y: auto;
 }
 
-.subtitle-search-container li {
-  padding: 8px;
+/* Non-current subtitle styling */
+.subtitle-list-container li {
+  padding: 10px;
   cursor: pointer;
-  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.5); /* Make non-current subtitles lighter */
+  font-size: 1rem;
+  font-weight: 400;
+  text-align: left; /* Align subtitle text to the left */
+  transition: all 0.3s ease;
 }
 
-.subtitle-search-container li:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+/* Highlight the current subtitle */
+.highlight {
+  background-color: rgba(255, 69, 0, 0.9); /* Brighter background to make it stand out */
+  font-weight: bold;
+  font-size: 2rem; /* Even larger font size */
+  color: white;
+  padding: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.9); /* Add a border to make it pop */
+  text-align: left; /* Align the highlighted subtitle to the left */
+  transition: all 0.3s ease;
 }
