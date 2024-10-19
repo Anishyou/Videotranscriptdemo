@@ -1,35 +1,34 @@
-import {Component, OnInit, ViewChild, ElementRef, AfterViewInit} from '@angular/core';
-import {CommonModule} from '@angular/common';  // Import CommonModule for ngFor and ngIf
-import {FormsModule} from '@angular/forms';  // Import FormsModule for ngModel
-import {HttpClient} from '@angular/common/http';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, HostListener } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import Hls from 'hls.js';
 
 @Component({
   selector: 'app-video-player',
   standalone: true,
-  imports: [CommonModule, FormsModule],  // Add CommonModule for ngFor, FormsModule for ngModel
+  imports: [CommonModule, FormsModule],
   templateUrl: './video-player.component.html',
   styleUrls: ['./video-player.component.css']
 })
 export class VideoPlayerComponent implements OnInit, AfterViewInit {
 
   videoUrl: string = '\n' +
-    'Add video url here';  // Your video URL
+    'video url';  // Your video URL
   subtitleUrl: string = 'https://tum.live/api/stream/26188/subtitles/de';  // WebVTT URL
-  subtitles: any[] = [];  // Parsed subtitles
-  currentSubtitle: string = '';  // Displayed subtitle
-  searchTerm: string = '';  // Search term for filtering
-  filteredSubtitles: any[] = [];  // For searching
+  subtitles: any[] = [];
+  filteredSubtitles: any[] = [];
+  currentSubtitleIndex: number = -1;
+  currentSubtitle: string = '';
+  searchTerm: string = '';  // Search term
 
+  @ViewChild('videoPlayer', { static: false }) videoPlayer!: ElementRef;
 
-  constructor(private http: HttpClient) {
-  }
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.loadSubtitles();
   }
-
-  @ViewChild('videoPlayer', {static: false}) videoPlayer!: ElementRef;
 
   ngAfterViewInit(): void {
     const video: HTMLVideoElement = this.videoPlayer.nativeElement;
@@ -42,33 +41,28 @@ export class VideoPlayerComponent implements OnInit, AfterViewInit {
       video.src = this.videoUrl;
     }
 
-    // Ensure subtitle time updates are synced
     this.setupTimeUpdate();
   }
 
-
   loadSubtitles() {
-    this.http.get(this.subtitleUrl, {responseType: 'text'}).subscribe((data) => {
-      // console.log("Raw Subtitle Data:", data);  // Log raw WebVTT data
-      this.parseSubtitles(data);  // Parse the WebVTT file
+    this.http.get(this.subtitleUrl, { responseType: 'text' }).subscribe((data) => {
+      this.parseSubtitles(data);
+      this.filteredSubtitles = this.subtitles;  // Initialize filtered subtitles
     });
   }
 
-
-  // Parse WebVTT subtitle file
   parseSubtitles(data: string) {
     const subtitleLines = data.split('\n\n');
-
     if (subtitleLines[0].startsWith('WEBVTT')) {
-      subtitleLines.shift();  // Skip the WEBVTT header
+      subtitleLines.shift();
     }
 
-    this.subtitles = subtitleLines.map((block, index) => {
-      const [timeLine, ...textLines] = block.split('\n');  // Handle multiline subtitles
+    this.subtitles = subtitleLines.map((block) => {
+      const [timeLine, ...textLines] = block.split('\n');
 
       if (timeLine && timeLine.includes('-->')) {
         const [startTime, endTime] = timeLine.split(' --> ');
-        const text = textLines.join(' ').trim();  // Combine all text lines for the subtitle block
+        const text = textLines.join(' ').trim();
 
         if (startTime && endTime && text) {
           return {
@@ -78,41 +72,27 @@ export class VideoPlayerComponent implements OnInit, AfterViewInit {
           };
         }
       }
-
-      // Log invalid blocks for further debugging
-      console.warn(`Invalid subtitle block at index ${index}:`, block);
       return null;
-    }).filter(sub => sub !== null);  // Filter out invalid blocks
+    }).filter(sub => sub !== null);
   }
 
-
   convertToSeconds(time: string): number {
-    if (!time) {
-      console.warn(`Invalid time format: ${time}`);
-      return 0;
-    }
-
     const timeParts = time.split(':');
-
     if (timeParts.length === 2) {
-      // Handle MM:SS format
       const minutes = parseInt(timeParts[0], 10);
       const [seconds, milliseconds] = timeParts[1].includes('.')
-        ? timeParts[1].split('.')  // Split seconds and milliseconds
-        : [timeParts[1], '0'];  // Default milliseconds to 0 if not present
+        ? timeParts[1].split('.')
+        : [timeParts[1], '0'];
       return (minutes * 60) + parseInt(seconds, 10) + parseFloat(`0.${milliseconds}`);
     } else if (timeParts.length === 3) {
-      // Handle HH:MM:SS format
       const hours = parseInt(timeParts[0], 10);
       const minutes = parseInt(timeParts[1], 10);
       const [seconds, milliseconds] = timeParts[2].includes('.')
-        ? timeParts[2].split('.')  // Split seconds and milliseconds
-        : [timeParts[2], '0'];  // Default milliseconds to 0 if not present
+        ? timeParts[2].split('.')
+        : [timeParts[2], '0'];
       return (hours * 3600) + (minutes * 60) + parseInt(seconds, 10) + parseFloat(`0.${milliseconds}`);
-    } else {
-      console.warn(`Unexpected time format: ${time}`);
-      return 0;  // Return 0 for invalid formats
     }
+    return 0;
   }
 
   setupTimeUpdate() {
@@ -120,35 +100,46 @@ export class VideoPlayerComponent implements OnInit, AfterViewInit {
 
     video.addEventListener('timeupdate', () => {
       const currentTime = video.currentTime;
-      console.log('Current video time:', currentTime);  // Log video time regularly
       this.updateSubtitle(currentTime);
     });
 
     video.addEventListener('seeking', () => {
-      const currentTime = video.currentTime;
-      this.updateSubtitle(currentTime);
+      this.updateSubtitle(video.currentTime);
     });
 
     video.addEventListener('seeked', () => {
-      const currentTime = video.currentTime;
-      this.updateSubtitle(currentTime);
+      this.updateSubtitle(video.currentTime);
     });
   }
 
-
   updateSubtitle(currentTime: number) {
-    const margin = 0.2;  // Adjust this value as needed
+    const margin = 0.2;
 
-    const subtitle = this.subtitles.find(s => {
-      return (s.startTime - margin) <= currentTime && currentTime <= (s.endTime + margin);
+    const subtitle = this.subtitles.find((s, index) => {
+      if ((s.startTime - margin) <= currentTime && currentTime <= (s.endTime + margin)) {
+        this.currentSubtitleIndex = index;
+        console.log("Current subtitle index:", this.currentSubtitleIndex); // Debugging line
+        return true;
+      }
+      return false;
     });
 
     if (subtitle) {
-      if (this.currentSubtitle !== subtitle.text) {
-        this.currentSubtitle = subtitle.text;
-      }
+      this.currentSubtitle = subtitle.text;
     } else {
-      this.currentSubtitle = '';  // Hide subtitle when no match
+      this.currentSubtitle = '';
+    }
+
+    this.scrollToCurrentSubtitle();
+  }
+
+
+  scrollToCurrentSubtitle() {
+    const subtitleElements = document.querySelectorAll('.subtitle-list-container li');
+    const currentSubtitleElement = subtitleElements[this.currentSubtitleIndex];
+
+    if (currentSubtitleElement) {
+      currentSubtitleElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
 
@@ -168,5 +159,13 @@ export class VideoPlayerComponent implements OnInit, AfterViewInit {
     videoElement.play();
   }
 
-
+  // HostListener to detect outside clicks
+  @HostListener('document:click', ['$event'])
+  handleClickOutside(event: Event) {
+    const target = event.target as HTMLElement;
+    if (target.id !== 'subtitleSearch') {
+      this.searchTerm = '';  // Clear search term
+      this.filteredSubtitles = this.subtitles;  // Reset to all subtitles
+    }
+  }
 }
